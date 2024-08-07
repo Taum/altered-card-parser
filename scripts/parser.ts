@@ -20,6 +20,12 @@ let testStrings = [
     "{J} If you control two or more Landmarks: Create an [Ordis Recruit 1/1/1] Soldier token in your Hero Expedition.  When my Expedition fails to move forward during Dusk — After Rest: []Draw a card.",
     "When you play a Spell — []Up to one target Character gains [[Fleeting]].",
     "{J} []The next Permanent you play this Afternoon costs {1} less.  When an opponent draws one or more cards or does [Resupply] — You may put a card from your hand in Reserve. If you do: Create an [Ordis Recruit 1/1/1] Soldier token in your other Expedition (the one I'm not in).",
+    "{H} You may discard a card from your Reserve. If you do: Draw a card.",
+    "When you play a Spell — I gain 1 boost.",
+    "{H} You may discard a card from your Reserve. If you do: I gain 1 boost.",
+    "{H} You may discard a card from your Reserve. If you do: Each player draws a card.",
+    "When I go to Reserve from the Expedition Zone — If I have 1 or more boosts: Draw a card.",
+    "{J} []I gain [[Anchored]].  When I go to Reserve from the Expedition Zone — If I have 1 or more boosts: Each player draws a card.",
 ]
 
 for (let test of testStrings) {

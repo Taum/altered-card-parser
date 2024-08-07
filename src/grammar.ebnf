@@ -1,57 +1,77 @@
 MainEffects      ::= MainAbility WS* MainAbility | MainAbility
 
-MainAbility      ::= FromHandTrigger | EnterPlayTrigger | ExpeditionFailedToMoveTrigger | PlaySpellTrigger
+MainAbility      ::= TriggeredAbility /* Future: Continuous abilities */
 
-FromHandTrigger  ::= "{H} " TriggerContents
-EnterPlayTrigger ::= "{J} " TriggerContents
+TriggeredAbility ::= TriggerEvent WS* TriggerEventCondition? DASH TriggerAction | TriggerEvent TriggerAction
 
-PlaySpellTrigger    ::= "When you play a Spell" DASH TriggerAction
+TriggerEvent     ::= TriggerFromHand | TriggerEnterPlay | TriggerMoveToReserveFromExpedition | TriggerExpeditionFailedToMove | TriggerPlaySpell | TriggerOppDrawOrResupply
 
-ExpeditionFailedToMoveTrigger ::= "When my Expedition fails to move forward during Dusk" DASH TriggerAction
+TriggerFromHand  ::= "{H}" WS*
+TriggerEnterPlay ::= "{J}" WS*
 
-AfterRestCondition ::= "After Rest:" WS*
+TriggerMoveToReserveFromExpedition ::= "When I go to Reserve from the Expedition Zone"
+TriggerExpeditionFailedToMove ::= "When my Expedition fails to move forward during Dusk"
+TriggerPlaySpell    ::= "When you play a Spell"
+TriggerOppDrawOrResupply ::= "When an opponent draws one or more cards or does [Resupply]"
 
-StaticEffect     ::= Phrase
+TriggerEventCondition  ::=  "TODO" /* TODO */
 
-TriggerContents  ::= (TriggerCondition WS* ":")? WS* TriggerAction
+TriggerActionCondition  ::= ConditionLandmarks | ConditionSelfHasBoosts | ConditionHandToReserve | ConditionDiscardFromReserve
 
-Phrase              ::= letters_or_spaces 
+ConditionSelfHasBoosts ::= "If I have" Amount "or more boosts"
 
-TriggerCondition  ::= ConditionLandmark1 | ConditionLandmark2
-
-ConditionLandmark1  ::= "If you control one or more Landmarks"
+ConditionLandmarks  ::= ConditionLandmark1 | ConditionLandmark2
+ConditionLandmark1  ::= "If you control one or more Landmark"
 ConditionLandmark2  ::= "If you control two or more Landmarks"
 
-TriggerActionCondition  ::= AfterRestCondition
+ConditionHandToReserve ::= "You may put a card from your hand in Reserve. If you do"
+ConditionDiscardFromReserve ::= "You may discard a card from your Reserve. If you do"
 
-TriggerAction     ::= TriggerActionCondition? "[]"? WS* (ActionDraw1 | ActionCharGainStatus | ActionCostReduction | ActionCreateTokenOrdis1) 
+AfterRestModifier      ::= "After Rest:"
 
+TriggerAction     ::= (TriggerActionCondition COLON)? AfterRestModifier? WS* "[]"? WS* Actions
 
-ActionCharGainStatus ::= "Up to one target Character gains " CharacterStatus "."
+Actions         ::= ActionDraw | ActionModifyStatus | ActionCostReduction | ActionCreateToken | ActionSelfGainBoost
+
 
 
 ActionCostReduction ::= "The next" WS* CostReductionObject WS* "you play this Afternoon costs" WS* ManaValue WS* "less."
-
 CostReductionObject ::= "Permanent" | "Character" | "Spell" | "Card"
 
-ActionDraw      ::= ActionDraw1 | ActionDraw2 | ActionDraw3
+ActionDraw      ::= ActionDraw1 | ActionDraw2 | ActionDraw3 | ActionEachDraw1
 ActionDraw1     ::= "Draw a card."
 ActionDraw2     ::= "Draw two cards."
 ActionDraw3     ::= "Draw three cards."
+ActionEachDraw1 ::= "Each player draws a card."
+
+ActionModifyStatus      ::= ActionSelfGainStatus | ActionSelfLoseStatus | ActionTargetGainStatus | ActionTargetLossStatus
+ActionSelfGainStatus    ::= "I gain " CharacterStatus "."
+ActionSelfLoseStatus    ::= "I lose " CharacterStatus "."
+ActionTargetGainStatus  ::= "Up to one target Character gains " CharacterStatus "."
+ActionTargetLossStatus  ::= "Up to one target Character loses " CharacterStatus "."
+
+ActionGainBoost         ::= ActionSelfGainBoost | ActionTargetGainBoost
+ActionSelfGainBoost     ::= "I gain" Amount "boost" "s"? "."
+ActionTargetGainBoost   ::= "Target character gains" Amount "boost" "s"? "."
 
 CharacterStatus         ::= CharacterStatusFleeting | CharacterStatusAnchored | CharacterStatusAsleep
 CharacterStatusFleeting ::= "[[Fleeting]]"
 CharacterStatusAnchored ::= "[[Anchored]]"
 CharacterStatusAsleep   ::= "[[Asleep]]"
 
+ActionCreateToken       ::= ActionCreateTokenOrdis1 | ActionCreateTokenOrdis2
 ActionCreateTokenOrdis1 ::= "Create an [Ordis Recruit 1/1/1] Soldier token in your Hero Expedition."
+ActionCreateTokenOrdis2 ::= "Create an [Ordis Recruit 1/1/1] Soldier token in your other Expedition (the one I'm not in)."
 
-ManaValue          ::= '{' DIGIT+ '}'
+ManaValue           ::= '{' DIGIT+ '}'
+Amount              ::= WS* (DIGIT+) WS*
 
 letters_or_spaces   ::= (WS* | [#x41-#x5A] | [#x61-#x7A])+
 
 DASH                ::= WS* DASH_SYMBOL WS*
+COLON               ::= WS* COLON_SYMBOL WS*
 
 DIGIT               ::= ([#x30-#x39])
 WS                  ::= ([#x20] | [#x00A0]) 
 DASH_SYMBOL         ::= "—"
+COLON_SYMBOL        ::= ":"
