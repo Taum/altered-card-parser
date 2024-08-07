@@ -1,0 +1,57 @@
+MainEffects      ::= MainAbility WS* MainAbility | MainAbility
+
+MainAbility      ::= FromHandTrigger | EnterPlayTrigger | ExpeditionFailedToMoveTrigger | PlaySpellTrigger
+
+FromHandTrigger  ::= "{H} " TriggerContents
+EnterPlayTrigger ::= "{J} " TriggerContents
+
+PlaySpellTrigger    ::= "When you play a Spell" DASH TriggerAction
+
+ExpeditionFailedToMoveTrigger ::= "When my Expedition fails to move forward during Dusk" DASH TriggerAction
+
+AfterRestCondition ::= "After Rest:" WS*
+
+StaticEffect     ::= Phrase
+
+TriggerContents  ::= (TriggerCondition WS* ":")? WS* TriggerAction
+
+Phrase              ::= letters_or_spaces 
+
+TriggerCondition  ::= ConditionLandmark1 | ConditionLandmark2
+
+ConditionLandmark1  ::= "If you control one or more Landmarks"
+ConditionLandmark2  ::= "If you control two or more Landmarks"
+
+TriggerActionCondition  ::= AfterRestCondition
+
+TriggerAction     ::= TriggerActionCondition? "[]"? WS* (ActionDraw1 | ActionCharGainStatus | ActionCostReduction | ActionCreateTokenOrdis1) 
+
+
+ActionCharGainStatus ::= "Up to one target Character gains " CharacterStatus "."
+
+
+ActionCostReduction ::= "The next" WS* CostReductionObject WS* "you play this Afternoon costs" WS* ManaValue WS* "less."
+
+CostReductionObject ::= "Permanent" | "Character" | "Spell" | "Card"
+
+ActionDraw      ::= ActionDraw1 | ActionDraw2 | ActionDraw3
+ActionDraw1     ::= "Draw a card."
+ActionDraw2     ::= "Draw two cards."
+ActionDraw3     ::= "Draw three cards."
+
+CharacterStatus         ::= CharacterStatusFleeting | CharacterStatusAnchored | CharacterStatusAsleep
+CharacterStatusFleeting ::= "[[Fleeting]]"
+CharacterStatusAnchored ::= "[[Anchored]]"
+CharacterStatusAsleep   ::= "[[Asleep]]"
+
+ActionCreateTokenOrdis1 ::= "Create an [Ordis Recruit 1/1/1] Soldier token in your Hero Expedition."
+
+ManaValue          ::= '{' DIGIT+ '}'
+
+letters_or_spaces   ::= (WS* | [#x41-#x5A] | [#x61-#x7A])+
+
+DASH                ::= WS* DASH_SYMBOL WS*
+
+DIGIT               ::= ([#x30-#x39])
+WS                  ::= ([#x20] | [#x00A0]) 
+DASH_SYMBOL         ::= "—"
