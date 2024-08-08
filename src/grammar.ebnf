@@ -1,69 +1,183 @@
-MainEffects      ::= MainAbility WS* MainAbility | MainAbility
+MainEffects      ::= MainAbility "  " MainEffects | MainAbility
 
-MainAbility      ::= TriggeredAbility /* Future: Continuous abilities */
+MainAbility      ::= TriggeredAbility | ContinuousAbility
 
 TriggeredAbility ::= TriggerEvent WS* TriggerEventCondition? DASH TriggerAction | TriggerEvent TriggerAction
 
-TriggerEvent     ::= TriggerFromHand | TriggerEnterPlay | TriggerMoveToReserveFromExpedition | TriggerExpeditionFailedToMove | TriggerPlaySpell | TriggerOppDrawOrResupply
+ContinuousAbility ::= (WS*)? ("[]"*)? (TriggerActionCondition COLON)? ContinousEffects
 
-TriggerFromHand  ::= "{H}" WS*
-TriggerEnterPlay ::= "{J}" WS*
+TriggerEvent     ::= TriggerFromHand | TriggerFromReserve | TriggerEnterPlay | TriggerNoon | TriggerDusk | TriggerMoveToReserveFromExpedition | TriggerMoveToReserveFromHand | TriggerLeaveExpedition | TriggerExpeditionFailedToMove | TriggerPlaySpell | TriggerPlayPermanent | TriggerPlayCharacterWithStats0 | TriggerCharacterJoinsExpeditions | TriggerOppDrawOrResupply | TriggerSacrificeSelf
 
+TriggerFromHand     ::= "{H}" WS*
+TriggerEnterPlay    ::= "{J}" WS*
+TriggerFromReserve  ::= "{R}" WS*
+
+TriggerNoon         ::= "At Noon"
+TriggerDusk         ::= "At Dusk"
+
+TriggerLeaveExpedition  ::= "When I leave the Expedition Zone"
 TriggerMoveToReserveFromExpedition ::= "When I go to Reserve from the Expedition Zone"
+TriggerMoveToReserveFromHand ::= "When I go to Reserve from your hand"
 TriggerExpeditionFailedToMove ::= "When my Expedition fails to move forward during Dusk"
 TriggerPlaySpell    ::= "When you play a Spell"
+TriggerPlayPermanent    ::= "When you play a Permanent" (RestrictionHandCostLessThan | RestrictionHandCostMoreThan)?
+TriggerPlayCharacterWithStats0 ::= "When you play another Character with a base statistic of 0" 
+TriggerCharacterJoinsExpeditions ::= "When a character other than me joins your Expeditions"
 TriggerOppDrawOrResupply ::= "When an opponent draws one or more cards or does [Resupply]"
+TriggerSacrificeSelf    ::= "When I'm sacrificed"
 
 TriggerEventCondition  ::=  "TODO" /* TODO */
 
-TriggerActionCondition  ::= ConditionLandmarks | ConditionSelfHasBoosts | ConditionHandToReserve | ConditionDiscardFromReserve
+TriggerActionCondition  ::= ConditionControlLandmark | ConditionControlCharacters | ConditionControlToken | ConditionSelfHasBoosts | ConditionHaveManaOrbs
 
 ConditionSelfHasBoosts ::= "If I have" Amount "or more boosts"
+ConditionControlLandmark  ::= "If you control" TextQuantity "Landmark" "s"?
+ConditionControlCharacters ::= "If you control" TextQuantity ConditionControlBoosted? "Character" "s"?
+ConditionControlCharacterTypes ::= "If you control" TextQuantity WS* CharacterType WS* ConditionOtherThanMe
+ConditionControlToken ::= "If you control" TextQuantity "token" "s"?
+ConditionHaveManaOrbs  ::= "Unless you have" TextQuantity "Mana Orbs"
 
-ConditionLandmarks  ::= ConditionLandmark1 | ConditionLandmark2
-ConditionLandmark1  ::= "If you control one or more Landmark"
-ConditionLandmark2  ::= "If you control two or more Landmarks"
+ConditionControlBoosted ::= WS* "[[Boosted]]" WS*
 
-ConditionHandToReserve ::= "You may put a card from your hand in Reserve. If you do"
-ConditionDiscardFromReserve ::= "You may discard a card from your Reserve. If you do"
+ConditionOtherThanMe  ::= "other than me"
+
+TriggerActionCost   ::= ActionCostHandToReserve | ActionCostHandToReserveRestricted | ActionCostDiscardFromReserve | ActionCostMana | ActionCostSacrifice
+
+ActionCostHandToReserve ::= "You may put a card from your hand in Reserve. If you do"
+ActionCostHandToReserveRestricted ::= "You may put a card from your hand in Reserve. If it's a" WS* CardType
+ActionCostDiscardFromReserve ::= "You may discard a card from your Reserve. If you do"
+ActionCostMana  ::= "You may pay" ManaValue ". If you do"
+
+ActionCostSacrifice ::= ActionCostSacrificeCharacter | ActionCostSacrificePermanent | ActionCostSacrificeCharacterOrPermanent
+ActionCostSacrificeCharacter ::= "You may sacrifice a Character"
+ActionCostSacrificePermanent ::= "You may sacrifice a Permanent"
+ActionCostSacrificeCharacterOrPermanent ::= "You may sacrifice a Character or Permanent"
 
 AfterRestModifier      ::= "After Rest:"
 
-TriggerAction     ::= (TriggerActionCondition COLON)? AfterRestModifier? WS* "[]"? WS* Actions
+TriggerAction     ::= ((TriggerActionCondition | TriggerActionCost) COLON)? AfterRestModifier? WS* ("[]"*)? WS* Actions
 
-Actions         ::= ActionDraw | ActionModifyStatus | ActionCostReduction | ActionCreateToken | ActionSelfGainBoost
+Actions           ::= ActionDraw | ActionAllDraw | ActionAsleepAndBoost | ActionModifyStatus | ActionCostReduction | ActionCreateToken | ActionGainBoost | ActionRamp | ActionHandToReserve | ActionPickupFromReserve | ActionPickupFromReserveOtherThanMe | ActionAllSacrifice | ActionExpeditionMovesBack | ActionRemoval | ActionPlayForFreeAsleep | ActionSabotage | ActionRollDieXBoosts | ActionRollDie4Plus | ActionActivateJ | ActionResupply
 
+ActionCostReduction ::= "The next" CostReductionObject "you play this Afternoon costs" ManaValue "less."
+CostReductionObject ::= WS* (CardType | "card") WS*
 
+ActionDraw      ::= ("draw" | "Draw") TextQuantity "card" "s"? "."
+ActionAllDraw   ::= "Each player draws" TextQuantity "card" "s"? "."
 
-ActionCostReduction ::= "The next" WS* CostReductionObject WS* "you play this Afternoon costs" WS* ManaValue WS* "less."
-CostReductionObject ::= "Permanent" | "Character" | "Spell" | "Card"
+ActionResupply  ::= "[Resupply]"
 
-ActionDraw      ::= ActionDraw1 | ActionDraw2 | ActionDraw3 | ActionEachDraw1
-ActionDraw1     ::= "Draw a card."
-ActionDraw2     ::= "Draw two cards."
-ActionDraw3     ::= "Draw three cards."
-ActionEachDraw1 ::= "Each player draws a card."
+ActionAllSacrifice      ::= "Each player sacrifices" TextQuantity "Character" "s"? "."
+
+ActionActivateJ         ::= "You may activate the {j} abilities of target" WS* (CardTypePermanent | CardTypeCharacter) WS* "you control."
+
+ActionPlayForFreeAsleep ::= "You may play me for free and I gain" WS* CharacterStatusAsleep "."
+
+ActionAsleepAndBoost    ::= "Up to one target Character gains [[Asleep]]. You may have it gain" Amount "boosts."
 
 ActionModifyStatus      ::= ActionSelfGainStatus | ActionSelfLoseStatus | ActionTargetGainStatus | ActionTargetLossStatus
-ActionSelfGainStatus    ::= "I gain " CharacterStatus "."
-ActionSelfLoseStatus    ::= "I lose " CharacterStatus "."
-ActionTargetGainStatus  ::= "Up to one target Character gains " CharacterStatus "."
-ActionTargetLossStatus  ::= "Up to one target Character loses " CharacterStatus "."
+ActionSelfGainStatus    ::= "I gain" CharacterStatus "."
+ActionSelfLoseStatus    ::= "I lose" CharacterStatus "."
+ActionTargetGainStatus  ::= "Up to" TextQuantity "target Character" "s"? " gain" "s"? CharacterStatus "."
+ActionTargetLossStatus  ::= "Up to" TextQuantity "target Character" "s"? " lose" "s"? CharacterStatus "."
+ActionTargetOtherLossStatus ::= "You may have target Character other than me lose" CharacterStatus "."
+ActionTargetOtherGainStatus ::= "Target Character other than me gains" CharacterStatus "."
 
-ActionGainBoost         ::= ActionSelfGainBoost | ActionTargetGainBoost
-ActionSelfGainBoost     ::= "I gain" Amount "boost" "s"? "."
-ActionTargetGainBoost   ::= "Target character gains" Amount "boost" "s"? "."
+ActionGainBoost            ::= ActionSelfGainBoost | ActionTargetGainBoost | ActionMultiTargetGainBoost
+ActionSelfGainBoost        ::= "I gain" Amount "boost" "s"? "."
+ActionTargetGainBoost      ::= "Target Character gains" Amount "boost" "s"? "."
+ActionMultiTargetGainBoost ::= "Up to" TextQuantity "target Characters each gain" Amount "boost" "s"? "."
 
-CharacterStatus         ::= CharacterStatusFleeting | CharacterStatusAnchored | CharacterStatusAsleep
+ActionRollDie4Plus         ::= "Roll a die. On a 4+, " Actions WS* "Otherwise, " Actions
+
+ActionRollDieXBoosts        ::= "Roll a die." DieBoostSubject "gain" "s"? " X boosts, where X is the result."
+DieBoostSubject            ::= WS* (DieBoostSelf | DieBoostTargetCharacter) WS*
+DieBoostSelf               ::= "I"
+DieBoostTargetCharacter    ::= "Up to one target Character" | "Target character" | "Target Character"
+
+ActionCreateToken       ::= "Create" WS* TextQuantity WS* TokenType WS* "token" WS* CreateTokenLocation "."
+
+TokenType               ::= TokenTypeOrdisRecruit | TokenTypeBrassbug
+TokenTypeOrdisRecruit   ::= "[Ordis Recruit 1/1/1] Soldier"
+TokenTypeBrassbug       ::= "[Brassbug 2/2/2] Robot"
+
+CreateTokenLocation     ::= CreateTokenLocationMyExpedition | CreateTokenLocationOtherExpedition | CreateTokenLocationEachExpedition | CreateTokenLocationTargetExpedition | CreateTokenLocationHeroExpedition | CreateTokenLocationCompanionExpedition
+CreateTokenLocationMyExpedition     ::= "in my Expedition"
+CreateTokenLocationOtherExpedition  ::= "in your other Expedition" " (the one I'm not in)"?
+CreateTokenLocationEachExpedition   ::= "in each of your Expeditions"
+CreateTokenLocationTargetExpedition ::= "in target Expedition"
+CreateTokenLocationHeroExpedition   ::= "in your Hero Expedition"
+CreateTokenLocationCompanionExpedition ::= "in your Companion Expedition"
+
+ActionSabotage          ::= "[Sabotage]."
+
+ActionRamp              ::= ActionRampBothPlayers | ActionRampMoveMe
+ActionRampBothPlayers   ::= "Each player puts the top card of their deck in their Mana zone (as an exhausted Mana Orb)."
+ActionRampMoveMe        ::= "Put me in my owner's Mana zone (as an exhausted Mana Orb)."
+
+ActionHandToReserve     ::= "You may put a card from your hand in Reserve."
+ActionPickupFromReserve ::= "You may return a" WS* (CardType | "card") WS* "from your Reserve to your hand."
+ActionPickupFromReserveOtherThanMe ::= "You may return a card other than me from your Reserve to your hand."
+
+ActionExpeditionMovesBack       ::= "Your opponent's Expedition facing me moves backwards one region."
+
+ActionRemoval             ::= ActionRemoveDiscard | ActionRemoveToHand | ActionRemoveToReserve
+
+ActionRemoveDiscard       ::= "You may discard target" WS* CardTypeDiscardable ActionRemovalRestrictions? "."
+ActionRemoveToReserve     ::= "You may send to Reserve target" WS* CardTypeDiscardable ActionRemovalRestrictions? "."
+ActionRemoveToHand        ::= "You may return target" WS* CardTypeDiscardable ActionRemovalRestrictions? " to its owner's hand."
+
+ActionRemovalRestrictions ::= RestrictionHandCostMoreThan | RestrictionHandCostLessThan
+
+RestrictionHandCostLessThan ::= "with Hand Cost" ManaValue "or less"
+RestrictionHandCostMoreThan ::= "with Hand Cost" ManaValue "or more"
+
+CharacterStatus         ::= WS* (CharacterStatusChooseAny | CharacterStatusFleeting | CharacterStatusAnchored | CharacterStatusAsleep) WS*
+CharacterStatusChooseAny ::= "[[Fleeting]], [[Anchored]] or [[Asleep]]"
 CharacterStatusFleeting ::= "[[Fleeting]]"
 CharacterStatusAnchored ::= "[[Anchored]]"
 CharacterStatusAsleep   ::= "[[Asleep]]"
 
-ActionCreateToken       ::= ActionCreateTokenOrdis1 | ActionCreateTokenOrdis2
-ActionCreateTokenOrdis1 ::= "Create an [Ordis Recruit 1/1/1] Soldier token in your Hero Expedition."
-ActionCreateTokenOrdis2 ::= "Create an [Ordis Recruit 1/1/1] Soldier token in your other Expedition (the one I'm not in)."
 
-ManaValue           ::= '{' DIGIT+ '}'
+ContinousEffects  ::= EffectExpeditionCantMoveForward | EffectOtherCharactersAre | EffectTokensYouControlAre | EffectIAm | EffectCharactersHaveR
+
+EffectExpeditionCantMoveForward ::= "Your other Expedition (the one I'm not in) and the Expedition facing it can't move forward."
+EffectOtherCharactersAre   ::= "Characters you control other than me are" WS* AbilityWord "."
+EffectIAm           ::= "I am" WS* AbilityWord "."
+EffectTokensYouControlAre ::= "Tokens you control are" WS* AbilityWord "."
+
+EffectCharactersHaveR ::= 'Your Characters have: "{R} I gain' Amount 'boost."'
+
+AbilityWord         ::= AbilityTough1 | AbilityTough2 | AbilityGigantic | AbilitySeasoned
+AbilityTough1       ::= "[Tough 1]"
+AbilityTough2       ::= "[Tough 2]"
+AbilityGigantic     ::= "[Gigantic]"
+AbilitySeasoned     ::= "[Seasoned]"
+AbilityDefender     ::= "[Defender]"
+
+CardType            ::= CardTypePermanent | CardTypeCharacter | CardTypeSpell
+CardTypeDiscardable ::= CardTypePermanent | CardTypeCharacter
+
+CardTypePermanent   ::= "Permanent"
+CardTypeCharacter   ::= "Character"
+CardTypeSpell       ::= "Spell"
+
+TextQuantity    ::= WS* (TextQuantity1 | TextQuantity2 | TextQuantity3 | TextQuantity4 | TextQuantity5 | TextQuantity6 | TextQuantity7 | TextQuantity8) TextQuantityOrMore? WS*
+TextQuantity1   ::= "one" | "an" | "a"
+TextQuantity2   ::= "two"
+TextQuantity3   ::= "three"
+TextQuantity4   ::= "four"
+TextQuantity5   ::= "five"
+TextQuantity6   ::= "six"
+TextQuantity7   ::= "seven"
+TextQuantity8   ::= "eight"
+TextQuantityOrMore   ::= " or more"
+
+CharacterType       ::= CharacterTypePlant | CharacterTypeRobot
+CharacterTypePlant  ::= "Plant" "s"?
+CharacterTypeRobot  ::= "Robot" "s"?
+
+ManaValue           ::= WS* '{' DIGIT+ '}' WS*
 Amount              ::= WS* (DIGIT+) WS*
 
 letters_or_spaces   ::= (WS* | [#x41-#x5A] | [#x61-#x7A])+
