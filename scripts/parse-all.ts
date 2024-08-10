@@ -23,23 +23,23 @@ for (let uniq of uniques) {
 
     let cardEls = uniq.elements
     if (cardEls.MAIN_EFFECT) {
-        let mainAST = parser.getAST(cardEls.MAIN_EFFECT);
+        const effects = cardEls.MAIN_EFFECT.toLowerCase()
+        let mainAST = parser.getAST(effects);
         if (mainAST) {
             if (mainAST.rest) {
                 stats.partial += 1
-                fails.push("[" + uniq.name + "]" + " ..." + cardEls.MAIN_EFFECT)
+                fails.push("[" + uniq.name + "]" + " ..." + mainAST.rest)
             } else {
-                stats.failed += 1
                 stats.parsed += 1
             }
         } else {
             stats.failed += 1
-            fails.push("[" + uniq.name + "]" + cardEls.MAIN_EFFECT)
+            fails.push("[" + uniq.name + "]" + effects)
         }
     }
 }
 
 console.log("Done!\n", stats)
-console.log("Fully parsed: ", Math.round(1000 * stats.parsed / (stats.parsed + stats.failed)) / 10.0, "%")
+console.log("Fully parsed: ", Math.round(1000 * stats.parsed / (stats.parsed + stats.partial + stats.failed)) / 10.0, "%")
 
 fs.writeFileSync("temp/rejects.txt", fails.join("\n"))
