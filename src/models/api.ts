@@ -17,6 +17,7 @@ export interface CollectionEntry {
     inMyCollection: Number
     collectorNumberFormatted: string
     elements: CardElements
+    parsed?: ParseResult
 }
 
 export interface CardElements {
@@ -27,4 +28,9 @@ export interface CardElements {
     FOREST_POWER: string
     MAIN_EFFECT?: string
     ECHO_EFFECT?: string
+}
+
+export interface ParseResult {
+    mainAST: any
+    echoAST: any
 }

@@ -5,36 +5,54 @@ import {
 
 import { IToken, Grammars } from 'ebnf';
 
-const grammar = fs.readFileSync('src/grammar.ebnf', { encoding: "utf8" })
+const mainGrammar = fs.readFileSync('src/main-effect.ebnf', { encoding: "utf8" })
+const echoGrammar = fs.readFileSync('src/echo-effect.ebnf', { encoding: "utf8" })
 
 // Debug at https://menduz.github.io/ebnf-highlighter/
-let parser = new Grammars.W3C.Parser(grammar, { debug: false });
+let mainParser = new Grammars.W3C.Parser(mainGrammar, { debug: false });
+let echoParser = new Grammars.W3C.Parser(echoGrammar, { debug: false });
 
-const collectionTxt = fs.readFileSync("data/uniques-extd.json", { encoding: "utf8" })
+const collectionTxt = fs.readFileSync("data/cards_uniques.json", { encoding: "utf8" })
 const uniques = JSON.parse(collectionTxt) as Array<CollectionEntry>
 
-let stats = { parsed: 0, failed: 0, partial: 0 }
+let stats = { parsed: 0, failed: 0, partial: 0, echo_parsed: 0, echo_failed: 0, echo_partial: 0 }
 let fails: Array<String> = []
 
 console.log("Parsing ", uniques.length, " entries")
 
-for (let uniq of uniques) {
+for (let uniqId in uniques) {
+    let uniq = uniques[uniqId]
     if (uniq.name == "Foiler") { continue; }
 
     let cardEls = uniq.elements
     if (cardEls.MAIN_EFFECT) {
-        const effects = cardEls.MAIN_EFFECT.toLowerCase()
-        let mainAST = parser.getAST(effects);
-        if (mainAST) {
-            if (mainAST.rest) {
+        const effects = cardEls.MAIN_EFFECT["en"].toLowerCase()
+        let ast = mainParser.getAST(effects);
+        if (ast) {
+            if (ast.rest) {
                 stats.partial += 1
-                fails.push("[" + uniq.name + "]" + " ..." + mainAST.rest)
+                fails.push("[" + uniq.name + "]" + " ..." + ast.rest)
             } else {
                 stats.parsed += 1
             }
         } else {
             stats.failed += 1
             fails.push("[" + uniq.name + "]" + effects)
+        }
+    }
+    if (cardEls.ECHO_EFFECT) {
+        const effects = cardEls.ECHO_EFFECT["en"].toLowerCase()
+        let ast = echoParser.getAST(effects);
+        if (ast) {
+            if (ast.rest) {
+                stats.echo_partial += 1
+                fails.push("[" + uniq.name + "](ECHO)" + " ..." + ast.rest)
+            } else {
+                stats.echo_parsed += 1
+            }
+        } else {
+            stats.echo_failed += 1
+            fails.push("[" + uniq.name + "](ECHO)" + effects)
         }
     }
 }

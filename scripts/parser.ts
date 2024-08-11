@@ -5,14 +5,21 @@ import {
 
 import { IToken, Grammars } from 'ebnf';
 
-const grammar = fs.readFileSync('src/grammar.ebnf', { encoding: "utf8" })
+const mainGrammar = fs.readFileSync('src/main-effect.ebnf', { encoding: "utf8" })
+const echoGrammar = fs.readFileSync('src/echo-effect.ebnf', { encoding: "utf8" })
 
 // Debug at https://menduz.github.io/ebnf-highlighter/
-let parser = new Grammars.W3C.Parser(grammar, { debug: false });
+let mainParser = new Grammars.W3C.Parser(mainGrammar, { debug: false });
+let echoParser = new Grammars.W3C.Parser(echoGrammar, { debug: false });
 
-const useTestSet = false
+function getAST(parser, text): IToken {
+    return parser.getAST(text.toLowerCase())
+}
 
-if (useTestSet) {
+const useMainTestSet = false
+const useEchoTestSet = true
+
+if (useMainTestSet) {
     let testStrings = [
         "{J} If you control two or more Landmarks: Create an [Ordis Recruit 1/1/1] Soldier token in your Hero Expedition.",
         "When my Expedition fails to move forward during Dusk — After Rest: []Draw a card.",
@@ -32,12 +39,29 @@ if (useTestSet) {
     for (let test of testStrings) {
         console.log("Testing: ", test, "\n")
 
-        let output = parser.getAST(test)
+        let output = getAST(mainParser, test)
         describeTree(output)
 
         console.log("---------------")
     }
-} else {
+}
+if (useEchoTestSet) {
+    let testStrings = [
+        "{D} : []The next card you play this Afternoon costs {1} less.",
+        "{D} : []Up to one target Character with Hand Cost {3} or less other than me gains [[Anchored]]."
+    ]
+
+    for (let test of testStrings) {
+        console.log("Testing: ", test.toLowerCase(), "\n")
+
+        let output = getAST(echoParser, test)
+        describeTree(output)
+
+        console.log("---------------")
+    }
+}
+
+if (!useMainTestSet && !useEchoTestSet) {
     const collectionTxt = fs.readFileSync("data/uniques.json", { encoding: "utf8" })
     const uniques = JSON.parse(collectionTxt) as Array<CollectionEntry>
 
@@ -49,15 +73,20 @@ if (useTestSet) {
         console.log("Image: ", uniq.imagePath)
         if (cardEls.MAIN_EFFECT) {
             console.log("main: -> ", cardEls.MAIN_EFFECT)
-            const mainAST = parser.getAST(cardEls.MAIN_EFFECT);
+            const mainAST = getAST(mainParser, cardEls.MAIN_EFFECT);
             describeTree(mainAST)
             if (mainAST == null) {
                 break;
             }
         }
-        // if (cardEls.ECHO_EFFECT) {
-        //     console.log("echo: -> ", cardEls.ECHO_EFFECT)
-        // }
+        if (cardEls.ECHO_EFFECT) {
+            console.log("echo: -> ", cardEls.ECHO_EFFECT)
+            const echoAST = getAST(echoParser, cardEls.ECHO_EFFECT);
+            describeTree(echoAST)
+            if (echoAST == null) {
+                break;
+            }
+        }
         console.log("-------------------------------------------------")
     }
 }
