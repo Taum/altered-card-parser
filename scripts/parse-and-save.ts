@@ -12,10 +12,10 @@ const echoGrammar = fs.readFileSync('src/echo-effect.ebnf', { encoding: "utf8" }
 let mainParser = new Grammars.W3C.Parser(mainGrammar, { debug: false });
 let echoParser = new Grammars.W3C.Parser(echoGrammar, { debug: false });
 
-const collectionTxt = fs.readFileSync("data/cards_uniques.json", { encoding: "utf8" })
-const uniques = JSON.parse(collectionTxt) as Array<CollectionEntry>
+const collectionTxt = fs.readFileSync("data/cards.json", { encoding: "utf8" })
+const cardsDB = JSON.parse(collectionTxt) as Array<CollectionEntry>
 
-console.log("Parsing ", uniques.length, " entries")
+console.log("Parsing", Object.keys(cardsDB).length, "entries")
 
 const nodeNamesToErase = ["CardType", "CharacterType", "CharacterStatus"]
 
@@ -31,8 +31,10 @@ function trimToSerialize(node: IToken) {
     }
 }
 
-for (let idx in uniques) {
-    let uniq = uniques[idx]
+let errorCount = 0
+
+for (let idx in cardsDB) {
+    let uniq = cardsDB[idx]
     if (uniq.name == "Foiler") { continue; }
 
     let cardEls = uniq.elements
@@ -40,15 +42,19 @@ for (let idx in uniques) {
     let echoAST = null
     if (cardEls.MAIN_EFFECT) {
         const effects = cardEls.MAIN_EFFECT["en"].toLowerCase()
-        mainAST = trimToSerialize(mainParser.getAST(effects))
+        const ast = mainParser.getAST(effects)
+        mainAST = trimToSerialize(ast)
+        if (ast == null || ast.rest.length > 0) { errorCount += 1 }
     }
     if (cardEls.ECHO_EFFECT) {
         const effects = cardEls.ECHO_EFFECT["en"].toLowerCase()
-        echoAST = trimToSerialize(echoParser.getAST(effects))
+        const ast = echoParser.getAST(effects)
+        echoAST = trimToSerialize(ast)
+        if (ast == null || ast.rest.length > 0) { errorCount += 1 }
     }
-    uniques[idx].parsed = { mainAST, echoAST }
+    cardsDB[idx].parsed = { mainAST, echoAST }
 }
 
-console.log("Done!\n")
+console.log("Done with", errorCount, "errors")
 
-fs.writeFileSync("data/cards_uniques_parsed.json", JSON.stringify(uniques, null, "  "))
+fs.writeFileSync("data/cards_with_ast.json", JSON.stringify(cardsDB, null, "  "))

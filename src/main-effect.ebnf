@@ -103,20 +103,19 @@ ActionModifyStatus      ::=  ActionTargetSelfBoostAndLoseStatus | ActionSelfGain
 ActionSelfGainStatus    ::= "i gain" CharacterStatus
 ActionSelfLoseStatus    ::= "i lose" CharacterStatus
 ActionTargetGainStatusOne ::= "target character" WS* RestrictionOtherThanMe? WS* "gains" CharacterStatus
-ActionTargetGainStatus  ::= ActionTargetGainStatusOne | "up to" TextQuantity "target character" "s"? TargetStatusRestriction? "gain" "s"? CharacterStatus
-ActionTargetLoseStatus  ::= "up to" TextQuantity "target character" "s"? TargetStatusRestriction? "lose" "s"? CharacterStatus
+ActionTargetGainStatus  ::= ActionTargetGainStatusOne | "up to" TextQuantity "target character" "s"? WS* TargetStatusRestriction? "gain" "s"? CharacterStatus
+ActionTargetLoseStatus  ::= "up to" TextQuantity "target character" "s"? WS* TargetStatusRestriction? "lose" "s"? CharacterStatus
 ActionTargetOtherLoseStatus ::= "you may have target character other than me lose" CharacterStatus WS* ActionTargetOtherLoseStatusAndGainBoost?
 ActionTargetSelfBoostAndLoseStatus ::= "i gain" Amount "boost" "s"? " and lose" CharacterStatus
 ActionTargetOtherLoseStatusAndGainBoost ::= "and gain" Amount "boost" "s"?
 ActionAllControlledGainStatus ::= "each character controlled by target player gains" CharacterStatus
 ActionAllTargetExpeditionGainStatus ::= "all characters in target expedition gain" CharacterStatus
 
-TargetStatusRestriction    ::= WS* (RestrictionHandCostLessThan | RestrictionHandCostMoreThan)? WS* RestrictionOtherThanMe? WS*
-
+TargetStatusRestriction    ::= (RestrictionHandCostLessThan | RestrictionHandCostMoreThan)? WS* RestrictionOtherThanMe? WS*
 
 ActionGainBoost            ::= ActionBoostForReserve | ActionBoostForLandmark | ActionSelfGainBoost | ActionTargetGainBoost | ActionMultiTargetGainBoost | ActionAllGainBoost | ActionAllTypeGainBoost 
 ActionSelfGainBoost        ::= "i gain" Amount "boost" "s"?
-ActionTargetGainBoost      ::= ("target character" TargetBoostRestriction | "up to one target" WS* CharacterType) WS* "gains" Amount "boost" "s"?
+ActionTargetGainBoost      ::= ("target character" WS* TargetBoostRestriction? | "up to one target" WS* CharacterType) WS* "gains" Amount "boost" "s"?
 ActionMultiTargetGainBoost ::= "up to" TextQuantity "target characters each gain" Amount "boost" "s"?
 ActionAllGainBoost         ::= "characters you control gain" Amount "boost" "s"?
 ActionAllTypeGainBoost     ::= CharacterType WS* "you control other than me gain" Amount "boost" "s"? 
@@ -125,10 +124,10 @@ ActionBoostForReserveOwnReserve ::= "your reserve"
 ActionBoostForReserveAllReserve ::= "each player's reserve"
 ActionBoostForLandmark     ::= "i gain 1 boost for each landmark you control"
 
-TargetBoostRestriction     ::= WS* RestrictionInOtherExpedition? WS*
+TargetBoostRestriction     ::= RestrictionInOtherExpedition
 
-ActionRollDie4Plus         ::= "roll a die. on a 4+" (","|":") WS* ActionContents ActionRollDieOtherwise?
-ActionRollDieOtherwise     ::= WS* ". otherwise," WS* ActionContents
+ActionRollDie4Plus         ::= "roll a die. on a 4+" (","|":") WS* ActionContents WS* ActionRollDieOtherwise?
+ActionRollDieOtherwise     ::= ". otherwise," WS* ActionContents
 
 ActionRollDieXBoosts        ::= "roll a die." DieBoostSubject "gain" "s"? " x boosts, where x is the result"
 DieBoostSubject            ::= WS* (DieBoostSelf | DieBoostTargetCharacter) WS*

@@ -62,7 +62,7 @@ if (useEchoTestSet) {
 }
 
 if (!useMainTestSet && !useEchoTestSet) {
-    const collectionTxt = fs.readFileSync("data/uniques.json", { encoding: "utf8" })
+    const collectionTxt = fs.readFileSync("data/cards.json", { encoding: "utf8" })
     const uniques = JSON.parse(collectionTxt) as Array<CollectionEntry>
 
     for (let uniq of uniques.slice(0, 30)) {
