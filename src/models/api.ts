@@ -34,3 +34,16 @@ export interface ParseResult {
     mainAST: any
     echoAST: any
 }
+
+
+export interface CSVRow {
+    id: string
+    handCost: string
+    reserveCost: string
+    forestPower: string
+    mountainPower: string
+    waterPower: string
+    abilities: string
+    supportAbility: string
+    parsed?: ParseResult
+}

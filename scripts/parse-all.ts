@@ -2,15 +2,9 @@ import * as fs from 'fs';
 import {
     CollectionEntry,
 } from '../src/models/api';
-
-import { IToken, Grammars } from 'ebnf';
-
-const mainGrammar = fs.readFileSync('src/main-effect.ebnf', { encoding: "utf8" })
-const echoGrammar = fs.readFileSync('src/echo-effect.ebnf', { encoding: "utf8" })
+import { mainParser, echoParser } from '../src'
 
 // Debug at https://menduz.github.io/ebnf-highlighter/
-let mainParser = new Grammars.W3C.Parser(mainGrammar, { debug: false });
-let echoParser = new Grammars.W3C.Parser(echoGrammar, { debug: false });
 
 const collectionTxt = fs.readFileSync("data/cards.json", { encoding: "utf8" })
 const uniques = JSON.parse(collectionTxt) as Array<CollectionEntry>

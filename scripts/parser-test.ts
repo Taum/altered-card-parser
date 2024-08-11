@@ -2,15 +2,10 @@ import * as fs from 'fs';
 import {
     CollectionEntry,
 } from '../src/models/api';
-
-import { IToken, Grammars } from 'ebnf';
-
-const mainGrammar = fs.readFileSync('src/main-effect.ebnf', { encoding: "utf8" })
-const echoGrammar = fs.readFileSync('src/echo-effect.ebnf', { encoding: "utf8" })
+import { IToken } from 'ebnf'
+import { mainParser, echoParser } from '../src'
 
 // Debug at https://menduz.github.io/ebnf-highlighter/
-let mainParser = new Grammars.W3C.Parser(mainGrammar, { debug: false });
-let echoParser = new Grammars.W3C.Parser(echoGrammar, { debug: false });
 
 function getAST(parser, text): IToken {
     return parser.getAST(text.toLowerCase())

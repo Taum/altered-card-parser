@@ -2,15 +2,10 @@ import * as fs from 'fs';
 import {
     CollectionEntry,
 } from '../src/models/api';
-
-import { IToken, Grammars } from 'ebnf';
-
-const mainGrammar = fs.readFileSync('src/main-effect.ebnf', { encoding: "utf8" })
-const echoGrammar = fs.readFileSync('src/echo-effect.ebnf', { encoding: "utf8" })
+import { IToken } from 'ebnf'
+import { mainParser, echoParser } from '../src'
 
 // Debug at https://menduz.github.io/ebnf-highlighter/
-let mainParser = new Grammars.W3C.Parser(mainGrammar, { debug: false });
-let echoParser = new Grammars.W3C.Parser(echoGrammar, { debug: false });
 
 const collectionTxt = fs.readFileSync("data/cards.json", { encoding: "utf8" })
 const cardsDB = JSON.parse(collectionTxt) as Array<CollectionEntry>
@@ -18,15 +13,21 @@ const cardsDB = JSON.parse(collectionTxt) as Array<CollectionEntry>
 console.log("Parsing", Object.keys(cardsDB).length, "entries")
 
 const nodeNamesToErase = ["CardType", "CharacterType", "CharacterStatus"]
+const nodeNamesToSaveValue = ["Amount", "ManaValue"]
 
 function trimToSerialize(node: IToken) {
     if (nodeNamesToErase.find((x) => x == node.type) && node.children.length == 1) {
         return trimToSerialize(node.children[0])
     }
+    let value: string | undefined = undefined
+    if (nodeNamesToSaveValue.find((x) => x == node.type)) {
+        value = node.text.trim()
+    }
     return {
         type: node.type,
         start: node.start,
         end: node.end,
+        value: value,
         children: node.children.map(trimToSerialize)
     }
 }

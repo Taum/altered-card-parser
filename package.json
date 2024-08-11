@@ -12,6 +12,9 @@
     "parser-test": "ts-node -P tsconfig.json scripts/parser-test.ts",
     "parse-all": "ts-node -P tsconfig.json scripts/parse-all.ts",
     "parse-and-save": "ts-node -P tsconfig.json scripts/parse-and-save.ts",
+    "parse-csv-and-save": "ts-node -P tsconfig.json scripts/parse-csv-and-save.ts",
+    "compute-tree-frequencies": "ts-node -P tsconfig.json scripts/compute-tree-frequencies.ts",
+    "parse-and-compute": "ts-node -P tsconfig.json scripts/parse-csv-and-save.ts && ts-node -P tsconfig.json scripts/compute-tree-frequencies.ts",
     "build": "run-p build:*",
     "build:main": "tsc -p tsconfig.json",
     "build:module": "tsc -p tsconfig.module.json",
@@ -46,6 +49,7 @@
   },
   "dependencies": {
     "@bitauth/libauth": "^1.17.1",
+    "csv-parser": "^3.0.0",
     "ebnf": "^1.9.1"
   },
   "devDependencies": {
