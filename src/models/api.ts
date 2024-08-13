@@ -18,6 +18,7 @@ export interface CollectionEntry {
     collectorNumberFormatted: string
     elements: CardElements
     parsed?: ParseResult
+    type: "SPELL" | "CHARACTER" | "PERMANENT" | "HERO" | "TOKEN" | "TOKEN_MANA"
 }
 
 export interface CardElements {

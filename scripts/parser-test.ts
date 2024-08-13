@@ -11,8 +11,8 @@ function getAST(parser, text): IToken {
     return parser.getAST(text.toLowerCase())
 }
 
-const useMainTestSet = false
-const useEchoTestSet = true
+const useMainTestSet = true
+const useEchoTestSet = false
 
 if (useMainTestSet) {
     let testStrings = [
@@ -28,7 +28,8 @@ if (useMainTestSet) {
         "When I go to Reserve from the Expedition Zone — If I have 1 or more boosts: Draw a card.",
         "{J} []I gain [[Anchored]].  When I go to Reserve from the Expedition Zone — If I have 1 or more boosts: Each player draws a card.",
         "{R} []Target Character gains 2 boosts.",
-        "{J} You may put a card from your hand in Reserve. If it's a Permanent: You may return a card from your Reserve to your hand."
+        "{J} You may put a card from your hand in Reserve. If it's a Permanent: You may return a card from your Reserve to your hand.",
+        "{J} Roll a die. On a 4+, I gain [[Anchored]]. On a 1-3, I gain 3 boosts.",
     ]
 
     for (let test of testStrings) {

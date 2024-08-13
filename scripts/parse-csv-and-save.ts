@@ -17,6 +17,9 @@ fs.createReadStream('data/export_cards_uniques_en_lite.csv')
         parseResults(results);
     })
 
+function cleanupRuleText(text) {
+    return text.toLowerCase().replaceAll("#", "").replaceAll("\u00a0", " ")
+}
 
 function parseResults(results: Array<CSVRow>) {
     console.log("Parsing", results.length, "entries")
@@ -48,13 +51,13 @@ function parseResults(results: Array<CSVRow>) {
         let mainAST = null
         let echoAST = null
         if (uniq.abilities) {
-            const effects = uniq.abilities.toLowerCase()
+            const effects = cleanupRuleText(uniq.abilities)
             const ast = mainParser.getAST(effects)
             mainAST = trimToSerialize(ast)
             if (ast == null || ast.rest.length > 0) { errorCount += 1 }
         }
         if (uniq.supportAbility) {
-            const effects = uniq.supportAbility.toLowerCase()
+            const effects = cleanupRuleText(uniq.supportAbility)
             const ast = echoParser.getAST(effects)
             echoAST = trimToSerialize(ast)
             if (ast == null || ast.rest.length > 0) { errorCount += 1 }

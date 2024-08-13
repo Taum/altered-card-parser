@@ -7,12 +7,16 @@ import { mainParser, echoParser } from '../src'
 
 // Debug at https://menduz.github.io/ebnf-highlighter/
 
-const collectionTxt = fs.readFileSync("data/cards.json", { encoding: "utf8" })
+const collectionTxt = fs.readFileSync("data/cards_core.json", { encoding: "utf8" })
 const cardsDB = JSON.parse(collectionTxt) as Array<CollectionEntry>
+
+function cleanupRuleText(text) {
+    return text.toLowerCase().replaceAll("#", "").replaceAll("\u00a0", " ")
+}
 
 console.log("Parsing", Object.keys(cardsDB).length, "entries")
 
-const nodeNamesToErase = ["CardType", "CharacterType", "CharacterStatus"]
+const nodeNamesToErase = ["CardType", "CharacterType", "CounterType", "TokenType", "CharacterStatus"]
 const nodeNamesToSaveValue = ["Amount", "ManaValue"]
 
 function trimToSerialize(node: IToken) {
@@ -35,20 +39,21 @@ function trimToSerialize(node: IToken) {
 let errorCount = 0
 
 for (let idx in cardsDB) {
-    let uniq = cardsDB[idx]
-    if (uniq.name == "Foiler") { continue; }
+    let card = cardsDB[idx]
+    if (card.name == "Foiler") { continue; }
+    if (!(card.type == "CHARACTER" || card.type == "PERMANENT")) { continue; }
 
-    let cardEls = uniq.elements
+    let cardEls = card.elements
     let mainAST = null
     let echoAST = null
     if (cardEls.MAIN_EFFECT) {
-        const effects = cardEls.MAIN_EFFECT["en"].toLowerCase()
+        const effects = cleanupRuleText(cardEls.MAIN_EFFECT["en"])
         const ast = mainParser.getAST(effects)
         mainAST = trimToSerialize(ast)
         if (ast == null || ast.rest.length > 0) { errorCount += 1 }
     }
     if (cardEls.ECHO_EFFECT) {
-        const effects = cardEls.ECHO_EFFECT["en"].toLowerCase()
+        const effects = cleanupRuleText(cardEls.ECHO_EFFECT["en"])
         const ast = echoParser.getAST(effects)
         echoAST = trimToSerialize(ast)
         if (ast == null || ast.rest.length > 0) { errorCount += 1 }
@@ -58,4 +63,4 @@ for (let idx in cardsDB) {
 
 console.log("Done with", errorCount, "errors")
 
-fs.writeFileSync("data/cards_with_ast.json", JSON.stringify(cardsDB, null, "  "))
+fs.writeFileSync("data/cards_core_with_ast.json", JSON.stringify(cardsDB, null, "  "))

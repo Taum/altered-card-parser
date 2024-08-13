@@ -1,6 +1,11 @@
-ActionContents    ::= ActionDraw | ActionAllDraw | ActionOpponentDraw | ActionDiscardHandAndDraw | ActionDiscardHandReserveAndDraw | ActionAsleepAndBoost | ActionModifyStatus | ActionCostReduction | ActionCreateToken | ActionGainBoost | ActionRamp | ActionHandToReserve | ActionPickupFromReserve | ActionPickupFromReserveOtherThanMe | ActionOwnerSacrifice | ActionAllSacrifice | ActionExpeditionMovesBack | ActionRemoval | ActionPlayForFreeAsleep | ActionSabotage | ActionRollDieXBoosts | ActionRollDie4Plus | ActionActivateJTarget | ActionActivateJAll | ActionResupply | ActionAllResupply | ActionOpponentDiscard | ActionReturnToReserveIfNotFleeting | ActionSwitchExpedition | ActionAfterYou | ActionNextPlayed
+/* ================================ COMMON RULES ================================ */
 
-ActionCostReduction ::= "the next" CostReductionObject "you play this afternoon costs" ManaValue "less"
+
+ActionContents    ::= ActionDraw | ActionAllDraw | ActionOpponentDraw | ActionDiscardHandAndDraw | ActionDiscardHandReserveAndDraw | ActionDiscardAnyFromReserveAndDraw | ActionAsleepAndBoost | ActionModifyStatus | ActionCostReduction | ActionCreateToken | ActionGainBoost | ActionRamp | ActionHandToReserve | ActionPickupFromReserve | ActionPickupFromReserveOtherThanMe | ActionOwnerSacrifice | ActionAllSacrifice | ActionExpeditionMovesBack | ActionRemoval | ActionPlayForFreeAsleep | ActionSabotage | ActionRollDieXBoosts | ActionRollDie4Plus | ActionActivateJTarget | ActionActivateJAll | ActionResupply | ActionAllResupply | ActionOpponentDiscard | ActionReturnToReserveIfNotFleeting | ActionSwitchExpedition | ActionAfterYou | ActionNextPlayed | ActionExpeditionMoveForward | ActionWinTheGame | ActionGainCounters
+
+ActionWinTheGame    ::= "you win the game"
+
+ActionCostReduction ::= "the next" CostReductionObject "you play this " ("afternoon" | "turn") " costs" ManaValue "less"
 CostReductionObject ::= WS* (CardType | CharacterType | "card") WS*
 
 ActionDraw      ::= "draw" TextQuantity "card" "s"? 
@@ -9,11 +14,15 @@ ActionOpponentDraw ::= "target opponent draws" TextQuantity "card" "s"?
 ActionDiscardHandAndDraw ::= "each player discards their hand, then draws" TextQuantity "card" "s"?
 ActionDiscardHandReserveAndDraw ::= "each player discards their hand and their reserve, then draws" TextQuantity "card" "s"?
 
+ActionDiscardAnyFromReserveAndDraw ::= "you may discard any number of cards from your reserve to draw that many cards"
+
 ActionResupply  ::= "[resupply]"
 ActionAllResupply ::= "each player may [resupply]"
 
 ActionAfterYou   ::= "[after you]"
 ActionSabotage   ::= "[sabotage]"
+
+ActionExpeditionMoveForward ::= "target expedition moves forward one region"
 
 ActionSacrificeSelfOptional ::= "you may sacrifice me"
 ActionOwnerSacrifice    ::= "sacrifice" TextQuantity "character" "s"? (WS* SacrificeRestrictionMyExpedition)?
@@ -29,53 +38,60 @@ ActionPlayForFreeAsleep ::= "you may play me for free and i gain" WS* CharacterS
 
 ActionAsleepAndBoost    ::= "up to one target character gains [[asleep]]. you may have it gain" Amount "boosts"
 
-ActionActivateJTarget   ::= "you may activate the {j} abilities of " ("up to" TextQuantity)? "target" WS* (CardTypePermanent | CardTypeCharacter) WS* "you control"
-ActionActivateJAll ::= "for each" WS* (CardTypeCharacter | CardTypePermanent) WS* "you control" (" other than me")? ", you may activate its {j} abilities"
+ActionActivateJTarget   ::= ActionOptional? WS* "activate the {j} " ("abilities" | "triggers") " of " ("up to" TextQuantity)? "target" WS* (CardTypePermanent | CardTypeCharacter) WS* "you control"
+ActionActivateJAll ::= "for each" " other"? WS* (CardTypeCharacter | CardTypePermanent) WS* "you control" " other than me"? ", you may activate its {j} " ("abilities" | "triggers")
 
-ActionModifyStatus      ::=  ActionTargetSelfBoostAndLoseStatus | ActionSelfGainStatus | ActionSelfLoseStatus | ActionTargetGainStatus | ActionTargetLoseStatus | ActionTargetOtherLoseStatus | ActionAllControlledGainStatus | ActionAllTargetExpeditionGainStatus
-ActionSelfGainStatus    ::= "i gain" CharacterStatus
+ActionModifyStatus      ::=  ActionSelfBoostAndLoseStatus | ActionSelfGainStatus | ActionSelfLoseStatus | ActionTargetGainStatus | ActionTargetLoseStatus | ActionTargetOtherLoseStatus | ActionAllControlledGainStatus | ActionAllTargetExpeditionGainStatus
+ActionSelfGainStatus    ::= ("i gain" | "have me gain") CharacterStatus
 ActionSelfLoseStatus    ::= "i lose" CharacterStatus
-ActionTargetGainStatusOne ::= "target character" WS* RestrictionOtherThanMe? WS* "gains" CharacterStatus
+ActionTargetGainStatusOne ::= "target character" WS* TargetStatusRestriction? WS* "gains" CharacterStatus
 ActionTargetGainStatus  ::= ActionTargetGainStatusOne | "up to" TextQuantity "target character" "s"? WS* TargetStatusRestriction? "gain" "s"? CharacterStatus
 ActionTargetLoseStatus  ::= "up to" TextQuantity "target character" "s"? WS* TargetStatusRestriction? "lose" "s"? CharacterStatus
-ActionTargetOtherLoseStatus ::= "you may have target character other than me lose" CharacterStatus WS* ActionTargetOtherLoseStatusAndGainBoost?
-ActionTargetSelfBoostAndLoseStatus ::= "i gain" Amount "boost" "s"? " and lose" CharacterStatus
-ActionTargetOtherLoseStatusAndGainBoost ::= "and gain" Amount "boost" "s"?
+ActionTargetOtherLoseStatus ::= "you may have " ("target character other than me" | "another target character") " lose" CharacterStatus WS* ActionTargetOtherLoseStatusAndGainBoost?
+ActionSelfBoostAndLoseStatus ::= "i gain" Amount BOOST "and lose" CharacterStatus
+ActionTargetOtherLoseStatusAndGainBoost ::= "and gain" Amount BOOST
 ActionAllControlledGainStatus ::= "each character controlled by target player gains" CharacterStatus
 ActionAllTargetExpeditionGainStatus ::= "all characters in target expedition gain" CharacterStatus
 
 TargetStatusRestriction    ::= (RestrictionHandCostLessThan | RestrictionHandCostMoreThan)? WS* RestrictionOtherThanMe? WS*
 
 
-ActionGainBoost            ::= ActionBoostForReserve | ActionBoostForLandmark | ActionSelfGainBoost | ActionTargetGainBoost | ActionMultiTargetGainBoost | ActionAllGainBoost | ActionAllTypeGainBoost 
-ActionSelfGainBoost        ::= "i gain" Amount "boost" "s"?
-ActionTargetGainBoost      ::= ("target character" WS* TargetBoostRestriction? | "up to one target" WS* CharacterType) WS* "gains" Amount "boost" "s"?
-ActionMultiTargetGainBoost ::= "up to" TextQuantity "target characters each gain" Amount "boost" "s"?
-ActionAllGainBoost         ::= "characters you control gain" Amount "boost" "s"?
-ActionAllTypeGainBoost     ::= CharacterType WS* "you control other than me gain" Amount "boost" "s"? 
-ActionBoostForReserve   ::= "i gain 1 boost for each card in" WS* (ActionBoostForReserveAllReserve | ActionBoostForReserveOwnReserve)
+ActionGainBoost            ::= ActionBoostForReserve | ActionBoostForLandmark | ActionSelfGainBoost | ActionTargetGainBoost | ActionMultiTargetGainBoost | ActionAllGainBoost | ActionAllTypeGainBoost | ActionTriggerObjectGainsBoost
+ActionSelfGainBoost        ::= ("i gain" | "have me gain") Amount BOOST
+ActionTriggerObjectGainsBoost ::= ("it gains" | "give it") Amount BOOST
+ActionTargetGainBoost      ::= ("you may have "? "target character" | "up to one target" WS* CharacterType) WS* TargetBoostRestriction? WS* "gain" "s"? Amount BOOST
+ActionMultiTargetGainBoost ::= "up to" TextQuantity "target characters each gain" Amount BOOST
+ActionAllGainBoost         ::= "characters you control gain" Amount BOOST
+ActionAllTypeGainBoost     ::= CharacterType WS* "you control" WS* RestrictionOtherThanMe? WS* "gain" Amount BOOST
+ActionBoostForReserve   ::= "i gain 1 boost" "[]"? WS* "for each card in" WS* (ActionBoostForReserveAllReserve | ActionBoostForReserveOwnReserve)
 ActionBoostForReserveOwnReserve ::= "your reserve"
 ActionBoostForReserveAllReserve ::= "each player's reserve"
-ActionBoostForLandmark     ::= "i gain 1 boost for each landmark you control"
+ActionBoostForLandmark     ::= "i gain 1 boost for each landmark you control"
 
-TargetBoostRestriction     ::= RestrictionInOtherExpedition
+TargetBoostRestriction     ::= RestrictionYouControl? WS* RestrictionInOtherExpedition?
 
-ActionNextPlayed ::= ActionNextCharacterLosesFleeting | ActionNextSpellLosesFleeting | ActionNextCharacterGainsBoost | ActionNextCharacterActivatesR
+ActionNextPlayed ::= ActionNextCharacterLosesFleeting | ActionNextSpellLosesFleeting | ActionNextCharacterGainsBoost | ActionNextCharacterActivatesR | ActionNextSpellIsFree
 ActionNextCharacterLosesFleeting ::= "the next character you play this turn loses" WS* CharacterStatusFleeting
 ActionNextSpellLosesFleeting     ::= "the next spell you play this turn loses" WS* CharacterStatusFleeting
-ActionNextCharacterGainsBoost    ::= "the next character you play this turn gains" Amount "boost" "s"?
-ActionNextCharacterActivatesR    ::= "the next character you play from your hand this turn activates its {r} abilities"
+ActionNextCharacterGainsBoost    ::= "the next character you play this turn gains" Amount BOOST
+ActionNextCharacterActivatesR    ::= ("the next character you play from your hand this turn activates its {r} abilities" | "activate the {r} triggers of the next character you play from your hand this turn")
+ActionNextSpellIsFree            ::= "the next spell you play this turn is free" ActionNextSpellLosesFleetingIfFromHand?
+ActionNextSpellLosesFleetingIfFromHand ::= ". if you play it from your hand, it loses" WS* CharacterStatusFleeting
 
-ActionRollDie4Plus         ::= "roll a die. on a 4+" (","|":") WS* ActionContents WS* ActionRollDieOtherwise?
-ActionRollDieOtherwise     ::= ". otherwise," WS* ActionContents
+ActionRollDie4Plus         ::= "roll a die. on a 4+" (","|":") WS* ActionContents WS* ActionRollDieOtherwise?
+ActionRollDieOtherwise     ::= (". otherwise," | ". on a 1-3,") WS* ActionContents
 
-
-ActionRollDieXBoosts        ::= "roll a die." DieBoostSubject "gain" "s"? " x boosts, where x is the result"
+ActionRollDieXBoosts        ::= "roll a die." DieBoostSubject "gain" "s"? " x boosts, where x is the result"
 DieBoostSubject            ::= WS* (DieBoostSelf | DieBoostTargetCharacter) WS*
 DieBoostSelf               ::= "i"
 DieBoostTargetCharacter    ::= "up to one target character" | "target character"
 
-ActionCreateToken       ::= "create" WS* TextQuantity WS* TokenType WS* "token" "s"? ","? WS* CreateTokenLocation
+ActionGainCounters      ::= "i gain" TextQuantity CounterType "counters"
+
+CounterType         ::= WS* CounterTypeKelon WS*
+CounterTypeKelon    ::= "kelon"
+
+ActionCreateToken       ::= "create" TextQuantity TokenType WS* "token" "s"? ","? WS* CreateTokenLocation
 
 TokenType               ::= TokenTypeOrdisRecruit | TokenTypeBrassbug
 TokenTypeOrdisRecruit   ::= "[ordis recruit 1/1/1] soldier"
@@ -83,7 +99,7 @@ TokenTypeBrassbug       ::= "[brassbug 2/2/2] robot"
 
 CreateTokenLocation     ::= CreateTokenLocationMyExpedition | CreateTokenLocationOtherExpedition | CreateTokenLocationEachExpedition | CreateTokenLocationTargetExpedition | CreateTokenLocationHeroExpedition | CreateTokenLocationCompanionExpedition | CreateTokenLocationDistributed
 CreateTokenLocationMyExpedition     ::= "in my expedition"
-CreateTokenLocationOtherExpedition  ::= "in your other expedition (the one i'm not in)"?
+CreateTokenLocationOtherExpedition  ::= "in your other expedition" " (the one i'm not in)"?
 CreateTokenLocationEachExpedition   ::= "in each of your expeditions"
 CreateTokenLocationTargetExpedition ::= "in target expedition"
 CreateTokenLocationHeroExpedition   ::= "in your hero expedition"
@@ -98,20 +114,21 @@ ActionRampFromDeckMany  ::= "put the top" TextQuantity "cards of your deck in yo
 
 ActionRampMoveMeOtherwiseDraw ::= ". if you don't, draw a card"
 
-ActionHandToReserve     ::= "you may put a card from your hand in reserve"
-ActionPickupFromReserve ::= "you may return a" WS* (CardType | "card") WS* "from your reserve to your hand"
-ActionPickupFromReserveOtherThanMe ::= "you may return a card other than me from your reserve to your hand"
+ActionHandToReserve     ::= ActionOptional? WS* "put a card from your hand in reserve"
+ActionPickupFromReserve ::= ActionOptional? WS* "return a" WS* (CardType | "card") WS* "from your reserve to your hand"
+ActionPickupFromReserveOtherThanMe ::= ActionOptional? WS* "return " ("a card other than me" | "another card") " from your reserve to your hand"
 
-ActionExpeditionMovesBack       ::= "your opponent's expedition facing me moves backwards one region"
+ActionExpeditionMovesBack       ::= "your opponent's expedition facing " ("me" | "mine") " moves backwards one region"
 
 ActionOpponentDiscard     ::= "target opponent discards a card from their hand"
 
-ActionRemoval             ::= ActionRemoveDiscard | ActionReturnToHand | ActionSendToReserveCondition | ActionSendToReserve | ActionSendToTopDeck | ActionSendToManaOrb
+ActionRemoval             ::= ActionRemoveDiscard | ActionReturnToHand | ActionSendSelfToReserve |ActionSendToReserveCondition | ActionSendToReserve | ActionSendToTopDeck | ActionSendToManaOrb
 
 ActionRemoveDiscard       ::= "you may discard target" ActionRemovalStatusRestriction? CardTypeDiscardable ActionRemovalRestrictions?
 ActionReturnToHand        ::= "you may return target" CardTypeDiscardable ActionRemovalRestrictions? " to its owner's hand"
-ActionSendToReserve       ::= "you may send target character to reserve"
+ActionSendSelfToReserve   ::= "put me in reserve"
 ActionSendToReserveCondition ::= "you may send to reserve target character" WS* ActionRemovalRestrictions
+ActionSendToReserve       ::= "you may send target character to reserve"
 ActionSendToTopDeck       ::= "you may return target" CardTypeDiscardable "to the top of its owner's deck"
 ActionSendToManaOrb       ::= "you may put target" CardTypeDiscardable "in its owner's mana zone (as an exhausted mana orb)"
 
@@ -121,8 +138,9 @@ ActionRemovalRestrictions ::= RestrictionHandCostLessThanCharacters | Restrictio
 RestrictionOtherThanMe      ::= "other than me"
 RestrictionHandCostLessThan ::= "with hand cost" ManaValue "or less"
 RestrictionHandCostMoreThan ::= "with hand cost" ManaValue "or more"
-RestrictionHandCostLessThanCharacters ::= "with hand cost {x} or less, where x is the number of characters you control"
-RestrictionInOtherExpedition ::= "in your other expedition (the one i'm not in)"?
+RestrictionHandCostLessThanCharacters ::= "with hand cost {x} or less, where x is the number of characters you control"
+RestrictionInOtherExpedition ::= "in your other expedition" " (the one i'm not in)"?
+RestrictionYouControl       ::= "you control"
 
 CharacterStatus         ::= WS* (CharacterStatusChooseAny | CharacterStatusFleeting | CharacterStatusAnchored | CharacterStatusAsleep) WS*
 CharacterStatusChooseAny ::= "[[fleeting]], [[anchored]] or [[asleep]]"
@@ -164,13 +182,17 @@ CharacterTypePlant  ::= "plant" "s"?
 CharacterTypeRobot  ::= "robot" "s"?
 CharacterTypeBureaucrat ::= "bureaucrat" "s"?
 
+ReminderText        ::= WS* '(' (#x20 | #x5B | #x5D | [0-9a-z.,'/{}+-])* ')'
+
 ManaValue           ::= WS* '{' DIGIT+ '}' WS*
 Amount              ::= WS* (DIGIT+) WS*
+
+BOOST               ::= WS* "boost" "s"? "[]"? WS*
 
 DASH                ::= WS* DASH_SYMBOL WS*
 COLON               ::= WS* COLON_SYMBOL WS*
 
 DIGIT               ::= ([#x30-#x39])
-WS                  ::= ([#x20] | [#x00A0]) 
+WS                  ::= ([#x20]) 
 DASH_SYMBOL         ::= "—"
 COLON_SYMBOL        ::= ":"

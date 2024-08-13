@@ -1,1 +1,1 @@
-EchoEffects      ::= "{d}" COLON "[]" WS* ActionContents "."
+EchoEffects      ::= "{d}" COLON "[]"* WS* ActionContents "." ReminderText?

@@ -1,12 +1,17 @@
-MainEffects      ::= ((TriggeredAbility | ContinuousAbility) (WS WS)?)*
+MainEffects      ::= ((TriggeredAbility | ContinuousAbility | ExhaustAbility) (WS WS)?)*
 
-TriggeredAbility ::= TriggerEvent WS* DASH TriggerAction | TriggerEvent TriggerAction
+TriggeredAbility ::= (TriggerEvent WS* OnTriggerActionCondition? DASH TriggerAction) | (TriggerEvent TriggerAction)
 
 ContinuousAbility ::= (WS*)? ("[]"*)? (TriggerActionCondition COLON)? WS* ContinousEffects
 
-EchoAbility      ::= "{d}" COLON TriggerAction
+ExhaustAbility   ::= ExhaustManaCost? "{t}" ExhaustAdditionalCost? WS* COLON WS* ActionContents "." ReminderText?
 
-TriggerEvent     ::= TriggerFromHand | TriggerFromReserve | TriggerEnterPlay | TriggerNoon | TriggerDusk | TriggerMoveToReserveFromExpedition | TriggerMoveToReserveFromHand | TriggerLeaveExpedition | TriggerExpeditionFailedToMove | TriggerPlaySpell | TriggerPlayPermanent | TriggerPlayCharacterWithStats0 | TriggerCharacterJoinsExpeditions | TriggerOppDrawOrResupply | TriggerSacrificeSelf | TriggerCardLeavesReserve | TriggerCreateToken | TriggerRollDice | TriggerCharacterGainsBoost | TriggerSelfGainBoost | TriggerExpeditionMoveDueToV
+ExhaustManaCost                  ::= ManaValue "," WS*
+ExhaustAdditionalCost            ::= ("," WS* (AdditionalCostSpendCounters | AdditionalCostSacrificeCharacter))*
+AdditionalCostSpendCounters      ::= "spend one of my" CounterType "counters"
+AdditionalCostSacrificeCharacter ::= "sacrifice a character"
+
+TriggerEvent     ::= TriggerFromHand | TriggerFromReserve | TriggerEnterPlay | TriggerNoon | TriggerDusk | TriggerMoveToReserveFromExpedition | TriggerMoveToReserveFromHand | TriggerLeaveExpedition | TriggerLeaveLandmarkZone | TriggerExpeditionFailedToMove | TriggerPlaySpell | TriggerPlayPermanent | TriggerPlayCharacterWithStats0 | TriggerCharacterJoinsExpeditions | TriggerOppDrawOrResupply | TriggerSacrificeSelf | TriggerSacrificeOtherCharacter | TriggerCardLeavesReserve | TriggerCreateToken | TriggerRollDice | TriggerCharacterGainsBoost | TriggerSelfGainBoost | TriggerExpeditionMoveDueToV
 
 TriggerFromHand     ::= "{h}" WS*
 TriggerEnterPlay    ::= "{j}" WS*
@@ -21,71 +26,85 @@ TriggerMoveToReserveFromHand        ::= "when i go to reserve from your hand"
 TriggerExpeditionFailedToMove       ::= "when my expedition fails to move forward during dusk"
 TriggerPlaySpell                    ::= "when you play a spell"
 TriggerPlayPermanent                ::= "when you play a permanent" (TriggerPlayPermanentRestriction)?
-TriggerPlayCharacterWithStats0      ::= "when you play another character with a base statistic of 0" 
-TriggerCharacterJoinsExpeditions    ::= "when another" WS* CharacterRestrictionNontoken? WS* (CharacterType | "character") WS* "joins your expeditions"
+TriggerPlayCharacterWithStats0      ::= "when you play another character with a base statistic of 0" 
+TriggerCharacterJoinsExpeditions    ::= "when" WS* (CharacterRestrictionAnother | "a") WS* CharacterRestrictionNontoken? WS* (CharacterType | "character") WS* "joins your expeditions"
 TriggerOppDrawOrResupply            ::= "when an opponent draws one or more cards or does [resupply]"
 TriggerSacrificeSelf                ::= "when i'm sacrificed"
+TriggerSacrificeOtherCharacter      ::= "when you sacrifice a character"
 TriggerCardLeavesReserve            ::= "when a card leaves your reserve during the afternoon"
 TriggerCreateToken                  ::= "when you create a token"
 TriggerRollDice                     ::= "when you roll one or more dice"
 TriggerCharacterGainsBoost          ::= "when a character you control gains 1 or more boosts"
 TriggerSelfGainBoost                ::= "when i gain 1 or more boosts"
-TriggerExpeditionMoveDueToV         ::= "when one of your expeditions moves forward due to {v}"
+TriggerExpeditionMoveDueToV         ::= "when one of your expeditions moves forward due to {v}"
+TriggerLeaveLandmarkZone            ::= "when i leave your landmark zone"
 
-TriggerActionCondition  ::= ("if" | ConditionInverse) WS* (ConditionControlLandmark | ConditionControlCharacters | ConditionControlCharacterTypes | ConditionControlToken | ConditionSelfHasBoosts | ConditionHaveManaOrbs | ConditionControlStats0)
+TriggerActionCondition  ::= ("if" | ConditionInverse) WS* (ConditionControlLandmark | ConditionControlCharacters | ConditionControlCharacterTypes | ConditionControlToken | ConditionSelfHasBoosts | ConditionSelfHasBoostsMaximum | ConditionSelfHasStatus | ConditionSelfDoesntHaveStatus | ConditionHaveManaOrbs | ConditionControlStats0)
 
+OnTriggerActionCondition ::= "," WS* ("if" | ConditionInverse) WS* (ConditionControlLandmark | ConditionControlCharacters | ConditionControlCharacterTypes | ConditionControlToken | ConditionSelfHasBoosts | ConditionSelfHasBoostsMaximum | ConditionSelfHasStatus | ConditionSelfDoesntHaveStatus | ConditionHaveManaOrbs | ConditionControlStats0 | ConditionLyraFestival)
+
+CharacterRestrictionAnother     ::= "another"
 CharacterRestrictionNontoken    ::= "non-token"
 TriggerPlayPermanentRestriction ::= WS* (RestrictionHandCostLessThan | RestrictionHandCostMoreThan) WS*
 
-ConditionSelfHasBoosts ::= "i have" Amount "or more boosts"
+ConditionSelfHasBoosts ::= ("i have" Amount "or more" BOOST | "i'm [[boosted]]")
+ConditionSelfHasBoostsMaximum ::= "i have" Amount BOOST "or less"
+ConditionSelfHasStatus ::= "i'm" WS* CharacterStatus
+ConditionSelfDoesntHaveStatus ::= "i'm not" WS* CharacterStatus
 ConditionControlLandmark  ::= "you control" TextQuantity "landmark" "s"?
-ConditionControlCharacters ::= "you control" TextQuantity ConditionControlBoosted? "character" "s"?
-ConditionControlCharacterTypes ::= "you control" TextQuantity WS* CharacterType WS* ConditionOtherThanMe?
+ConditionControlCharacters ::= "you control" TextQuantity ConditionOtherThanMe? WS* ConditionControlBoosted? WS* ConditionOtherThanMe? WS* "character" "s"?
+ConditionControlCharacterTypes ::= "you control" TextQuantity WS* ((CharacterType WS* ConditionOtherThanMe?) | (ConditionOtherThanMe? WS* CharacterType))
 ConditionControlToken ::= "you control" TextQuantity "token" "s"?
 ConditionHaveManaOrbs  ::= "you have" TextQuantity "mana orbs"
-ConditionControlStats0 ::= "you have" TextQuantity "base statistics of 0 among characters you control"
+ConditionControlStats0 ::= "you have" TextQuantity "base statistics of 0 among characters you control"
+ConditionLyraFestival  ::= "you control a [[fleeting]] character, another [[anchored]] character and yet another [[asleep]] character"
 
 ConditionInverse       ::= "unless"
 
 ConditionControlBoosted ::= WS* "[[boosted]]" WS*
 
-ConditionOtherThanMe  ::= "other than me"
+ConditionOtherThanMe  ::= "other than me" | "other" 
 
-TriggerActionCost   ::= ActionCostHandToReserve | ActionCostHandToReserveRestricted | ActionCostDiscardFromReserve | ActionCostDiscardManaOrb | ActionCostPayMana | ActionCostSacrifice
+TriggerActionCost   ::= ActionCostHandToReserve | ActionCostHandToReserveRestricted | ActionCostDiscardFromReserve | ActionCostDiscardManaOrb | ActionCostPayManaAndCounters | ActionCostPayMana | ActionCostSacrifice
 
-ActionCostHandToReserve ::= "you may put a card from your hand in reserve. if you do"
+IF_YOU_DO           ::= ". if you do" | (WS* "to")
+
+ActionCostHandToReserve ::= "you may put a card from your hand in reserve" IF_YOU_DO
 ActionCostHandToReserveRestricted ::= "you may put a card from your hand in reserve. if it's a" WS* CardType
-ActionCostDiscardFromReserve ::= "you may discard a card from your reserve. if you do"
-ActionCostPayMana  ::= "you may pay" ManaValue ". if you do"
-
-ActionCostDiscardManaOrb    ::= "you may discard one of your mana orbs. if you do"
-
+ActionCostDiscardFromReserve ::= "you may discard a card from your reserve" IF_YOU_DO
+ActionCostPayManaAndCounters ::= "you may pay" ManaValue "and spend one of my" CounterType "counters" IF_YOU_DO
+ActionCostPayMana   ::= "you may pay" ManaValue IF_YOU_DO
+ActionCostDiscardManaOrb    ::= "you may discard one of your mana orbs" IF_YOU_DO
 ActionCostSacrifice      ::= ActionCostSacrificeAny | ActionCostSacrificeSelf
-ActionCostSacrificeAny   ::= "you may sacrifice" TextQuantity CardTypeDiscardable ". if you do"
-ActionCostSacrificeSelf  ::= "you may sacrifice me. if you do"
+ActionCostSacrificeAny   ::= "you may sacrifice" TextQuantity CardTypeDiscardable IF_YOU_DO
+ActionCostSacrificeSelf  ::= "you may sacrifice me" IF_YOU_DO
 
-AfterRestModifier      ::= "after rest:"
+AfterRestModifier ::= WS? "after rest" COLON?
 
-TriggerAction     ::= ((TriggerActionCondition | TriggerActionCost) COLON)? AfterRestModifier? WS* ("[]"*)? WS* ActionContents "."
+TriggerAction     ::= ((TriggerActionCondition | TriggerActionCost) (COLON | ",")?)? ((MultipleActions) | (AfterRestModifier? WS* "[]"* WS* ActionContents "[]"* ".") | (WS* "[]"* WS* ActionContents AfterRestModifier? "[]"* ".")) ReminderText?
 
+MultipleActions   ::= AfterRestModifier? WS* "[]"* WS* ActionContents WS* "[]"* ". then," WS* ActionContents WS* "[]"* "."
 
-ContinousEffects  ::= (ContinousEffectContentNotEndingWithPeriod) | (ContinousEffectContent ".")
+ContinousEffects  ::= ((ContinousEffectContentNotEndingWithPeriod) | (ContinousEffectContent ".")) ReminderText?
 
-ContinousEffectContent ::= EffectExpeditionCantMoveForward | EffectOtherCharactersAre | EffectTokensYouControlAre | EffectIAm | EffectKraken | EffectMinimumManaToPlay | EffectReducedCost | EffectToughXRegions | EffectPreventJHR | EffectTax | EffectExtraRoll | EffectResupplyLookAt2
+ContinousEffectContent ::= EffectExpeditionCantMoveForward | EffectCharactersAre | EffectTokensYouControlAre | EffectKraken | EffectIssitoq | EffectMinimumManaToPlay | EffectReducedCost | EffectToughXRegions | EffectToughXCharacterType | EffectPreventJHR | EffectTax | EffectExtraRoll | EffectResupplyLookAt2 | EffectIAmConditional | EffectIAm
 
 ContinousEffectContentNotEndingWithPeriod ::= (EffectCharactersHaveR | EffectRollAddOne)
 
-EffectIAm           ::= "i am" WS* AbilityWord
-EffectOtherCharactersAre   ::= "characters you control other than me are" WS* AbilityWord
-EffectTokensYouControlAre ::= "tokens you control are" WS* AbilityWord
+EffectIAm           ::= ("i am" WS* AbilityWord | AbilityWord)
+EffectIAmConditional ::= ("i am" | "i have") WS* AbilityWord WS* TriggerActionCondition
+EffectCharactersAre   ::= "characters you control" WS* RestrictionOtherThanMe? WS* ("are" | "have") WS* AbilityWord
+EffectTokensYouControlAre ::= "tokens you control " ("are" | "have") WS* AbilityWord
 EffectExpeditionCantMoveForward ::= "your other expedition (the one i'm not in) and the expedition facing it can't move forward"
-EffectCharactersHaveR ::= 'your characters have: "{r} i gain' Amount 'boost."'
-EffectKraken        ::= "all regions are {o} and lose their other types"
+EffectCharactersHaveR ::= 'your characters have: "' WS* "{r} i gain" Amount BOOST '."'
+EffectKraken        ::= "all regions are {o} and lose their other types"
+EffectIssitoq       ::= "your other expedition and the expedition facing it can't move forward"
 EffectMinimumManaToPlay ::= "i can't be played if you have less than" TextQuantity "mana orbs"
 EffectReducedCost   ::= "i cost" ManaValue "less"
-EffectToughXRegions ::= "i am [tough x], where x is the number of regions between your hero and companion"
-EffectPreventJHR    ::= "the {j}, {h} and {r} abilities of characters facing me can't activate"
+EffectToughXRegions ::= "i am "? "[tough x], where x is the number of regions between your hero and companion"
+EffectToughXCharacterType ::= "i am "? "[tough x], where x is the number of" WS* CharacterType WS* "you control"
+EffectPreventJHR    ::= ("the {j}, {h} and {r} abilities of characters facing me can't activate" | "the {j}, {h} and {r} triggers of characters facing me don't activate")
 EffectTax           ::= (CardTypeCharacter | "cards") WS* "your opponents play cost" ManaValue "more"
 EffectExtraRoll     ::= "if you would roll one or more dice, instead roll that many dice plus one and ignore the roll of your choice"
 EffectRollAddOne    ::= "if you would roll a die, you may add 1 to its result. (choose after you see the result.)"
-EffectResupplyLookAt2 ::= "if you would [resupply], instead look at the top two cards of your deck. put one in reserve, and discard the other"
+EffectResupplyLookAt2 ::= "if you would [resupply], instead " ("look at" | "reveal") " the top two cards of your deck. put one in reserve, and discard the other"
